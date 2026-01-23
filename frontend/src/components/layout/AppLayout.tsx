@@ -1,0 +1,17 @@
+import { ReactNode } from "react";
+import { Header } from "./Header";
+
+type AppLayoutProps = {
+  children: ReactNode;
+};
+
+export function AppLayout({ children }: AppLayoutProps) {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <main className="mx-auto max-w-7xl px-6 py-6">
+        {children}
+      </main>
+    </div>
+  );
+}

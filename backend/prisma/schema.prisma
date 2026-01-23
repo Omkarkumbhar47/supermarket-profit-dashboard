@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ImportType {
+  PURCHASE
+  SALE
+}
+
+enum ImportStatus {
+  ACTIVE
+  DELETED
+}
+
+model Import {
+  id          String        @id @default(uuid())
+  fileName    String
+  fileHash    String        @unique
+  type        ImportType
+  status      ImportStatus  @default(ACTIVE)
+  uploadedAt  DateTime      @default(now())
+
+  purchases   Purchase[]
+  sales       Sale[]
+}
+
+model Product {
+  id        String    @id @default(uuid())
+  itemCode  String    @unique
+  itemName  String?
+
+  purchases Purchase[]
+  sales     Sale[]
+  lots      InventoryLot[]
+}
+
+model Purchase {
+  id          String         @id @default(uuid())
+  importId    String
+  productId   String
+  quantity    Int
+  buyingPrice Decimal        @db.Decimal(10, 2)
+  date        DateTime
+
+  import      Import         @relation(fields: [importId], references: [id])
+  product     Product        @relation(fields: [productId], references: [id])
+  lots        InventoryLot[]   // 👈 ADD THIS
+}
+
+
+model Sale {
+  id            String   @id @default(uuid())
+  importId      String
+  productId     String
+  quantitySold  Int
+  sellingPrice Decimal  @db.Decimal(10, 2)
+  date          DateTime
+
+  import        Import   @relation(fields: [importId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id])
+}
+
+model InventoryLot {
+  id          String   @id @default(uuid())
+  productId   String
+  purchaseId  String
+  quantity    Int
+  remaining   Int
+  buyingPrice Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  product     Product  @relation(fields: [productId], references: [id])
+  purchase    Purchase @relation(fields: [purchaseId], references: [id])
+}
